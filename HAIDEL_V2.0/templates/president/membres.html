@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Membres du Club{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+
+  <h4 class="fw-bold mb-4">👥 Gestion des Membres</h4>
+
+  <!-- Search -->
+  <div class="card mb-3">
+    <div class="card-body py-2">
+      <input type="text" class="form-control" id="searchInput" placeholder="🔍 Rechercher un membre…"
+             onkeyup="filterRows()" style="border-radius:20px;max-width:400px">
+    </div>
+  </div>
+
+  <!-- KPIs directly above list -->
+  <div class="row g-2 mb-3">
+    {% set total = membres|length %}
+    {% set actifs = membres|selectattr('actif_club')|list|length %}
+    {% for lbl, val, col in [('Total',total,'#8B4513'),('Actifs',actifs,'#31A24C'),('Inactifs',total-actifs,'#E67E22')] %}
+    <div class="col-4 col-md-2">
+      <div class="stat-card py-2">
+        <div class="stat-num" style="color:{{ col }};font-size:1.5rem">{{ val }}</div>
+        <div class="stat-label">{{ lbl }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Members table (no gap from KPIs) -->
+  {% if membres %}
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" id="membresTable">
+          <thead class="table-light">
+            <tr><th>Membre</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for m in membres %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div style="width:34px;height:34px;border-radius:50%;background:{{ m.get('avatar_color','#8B4513') }};
+                              display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem">
+                    {{ m.nom[0].upper() }}
+                  </div>
+                  <span class="fw-semibold">{{ m.nom }}</span>
+                </div>
+              </td>
+              <td class="text-secondary">{{ m.get('email','—') }}</td>
+              <td>
+                {% if m.get('custom_role') %}
+                  <span class="badge" style="background:#C9A64A;color:#fff">{{ m.custom_role }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ m.get('role_club','membre') }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge {{ 'bg-success' if m.get('actif_club') else 'bg-secondary' }}">
+                  {{ 'Actif' if m.get('actif_club') else 'Inactif' }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-outline-warning" style="border-radius:20px"
+                          data-bs-toggle="modal" data-bs-target="#roleModal{{ m.id }}">
+                    🏷️
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" style="border-radius:20px"
+                          data-bs-toggle="modal" data-bs-target="#warnModal{{ m.id }}">
+                    ⚠️
+                  </button>
+                  <form method="post" class="d-inline">
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="club_id" value="{{ m.get('club_id',1) }}">
+                    <input type="hidden" name="mem_id" value="{{ m.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:20px"
+                            onclick="return confirm('Retirer {{ m.nom }} du club ?')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Role modal -->
+                <div class="modal fade" id="roleModal{{ m.id }}" tabindex="-1">
+                  <div class="modal-dialog modal-sm">
+                    <div class="modal-content" style="border-radius:16px">
+                      <div class="modal-header border-0"><h6 class="modal-title fw-bold">Rôle — {{ m.nom }}</h6>
+                        <button class="btn-close" data-bs-dismiss="modal"></button></div>
+                      <form method="post">
+                        <div class="modal-body">
+                          <input type="hidden" name="action" value="set_role">
+                          <input type="hidden" name="club_id" value="{{ m.get('club_id',1) }}">
+                          <input type="hidden" name="mem_id" value="{{ m.id }}">
+                          <input name="custom_role" type="text" class="form-control" style="border-radius:10px"
+                                 value="{{ m.get('custom_role','') }}" placeholder="Ex: Trésorier">
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                          <button type="submit" class="btn btn-brand w-100" style="border-radius:20px">💾 Sauvegarder</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Warn modal -->
+                <div class="modal fade" id="warnModal{{ m.id }}" tabindex="-1">
+                  <div class="modal-dialog modal-sm">
+                    <div class="modal-content" style="border-radius:16px">
+                      <div class="modal-header border-0"><h6 class="modal-title fw-bold">⚠️ Avertissement</h6>
+                        <button class="btn-close" data-bs-dismiss="modal"></button></div>
+                      <form method="post">
+                        <div class="modal-body">
+                          <input type="hidden" name="action" value="warn">
+                          <input type="hidden" name="club_id" value="{{ m.get('club_id',1) }}">
+                          <input type="hidden" name="mem_id" value="{{ m.id }}">
+                          <textarea name="motif" class="form-control" rows="3" style="border-radius:10px"
+                                    placeholder="Motif de l'avertissement…"></textarea>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                          <button type="submit" class="btn btn-warning w-100 text-dark" style="border-radius:20px">Envoyer</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+function filterRows() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#membresTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}
+{% endblock %}

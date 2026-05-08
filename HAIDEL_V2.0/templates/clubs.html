@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% block title %}Clubs ENCG{% endblock %}{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">🏛️ Clubs ENCG Marrakech</h4>
+  <div class="row g-3">{% for c in clubs %}
+  <div class="col-md-4 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">
+            {{ c.nom[0].upper() }}
+          </div>
+          <div>
+            <div class="fw-bold" style="font-size:.9rem">{{ c.nom }}</div>
+            <small class="text-secondary">{{ c.type }}</small>
+          </div>
+        </div>
+        <p class="text-secondary small">{{ c.get('description','')[:80] }}</p>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <small class="text-secondary">👥 {{ c.get('nb_membres',0) }} membres</small>
+          {% if c.id in my_clubs %}
+            <span class="badge bg-success">Membre</span>
+          {% elif c.get('applications_ouvertes', 1) %}
+            <form method="post"><input type="hidden" name="club_id" value="{{ c.id }}">
+              <button type="submit" class="btn btn-sm btn-brand" style="border-radius:20px">Postuler</button>
+            </form>
+          {% else %}
+            <span class="badge bg-secondary">Fermé</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>{% endfor %}
+  </div>
+</div>{% endblock %}

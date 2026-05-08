@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block title %}Mes Demandes{% endblock %}{% block content %}
+<div class="container-xl py-4">
+  <div class="d-flex justify-content-between mb-4">
+    <h4 class="fw-bold mb-0">📋 Mes Demandes</h4>
+    <button class="btn btn-brand px-4" data-bs-toggle="modal" data-bs-target="#newDemModal"><i class="bi bi-plus-circle me-1"></i>Nouvelle Demande</button>
+  </div>
+  {% for d in demandes %}
+  <div class="card mb-3"><div class="card-body">
+    <div class="d-flex justify-content-between"><h6 class="fw-bold">{{ d.titre }}</h6>
+      <span class="badge {{ 'bg-success' if d.statut=='Validée' else 'bg-danger' if d.statut=='Refusée' else 'bg-warning text-dark' }}">{{ d.statut }}</span>
+    </div>
+    <small class="text-secondary">Type: {{ d.type }} · {{ d.get('date_soumission','')|datestr(10) }}</small>
+    {% if d.get('description') %}<p class="text-secondary mt-1 mb-0 small">{{ d.description }}</p>{% endif %}
+    {% if d.get('commentaire_admin') %}<div class="alert alert-light mt-2 py-1 px-2 mb-0"><small>💬 Admin: {{ d.commentaire_admin }}</small></div>{% endif %}
+  </div></div>
+  {% else %}<div class="alert alert-info rounded-3">Aucune demande.</div>{% endfor %}
+</div>
+<div class="modal fade" id="newDemModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="border-radius:16px">
+  <div class="modal-header border-0"><h5 class="modal-title fw-bold">Nouvelle Demande</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <form method="post"><div class="modal-body">
+    <div class="mb-3"><label class="form-label fw-semibold">Titre *</label>
+      <input name="titre" type="text" class="form-control" style="border-radius:10px" required></div>
+    <div class="mb-3"><label class="form-label fw-semibold">Type</label>
+      <select name="type" class="form-select" style="border-radius:10px">
+        <option value="stand">Stand</option><option value="materiel">Matériel</option>
+        <option value="locale">Locale/Salle</option><option value="budget">Budget</option><option value="autre">Autre</option>
+      </select></div>
+    <div class="mb-3"><label class="form-label fw-semibold">Description</label>
+      <textarea name="description" class="form-control" rows="3" style="border-radius:10px"></textarea></div>
+  </div><div class="modal-footer border-0 pt-0">
+    <button type="button" class="btn btn-outline-secondary" style="border-radius:20px" data-bs-dismiss="modal">Annuler</button>
+    <button type="submit" class="btn btn-brand px-4">Soumettre</button>
+  </div></form>
+</div></div></div>
+{% endblock %}

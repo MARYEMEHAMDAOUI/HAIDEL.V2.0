@@ -1,0 +1,124 @@
+{% extends "base.html" %}{% block title %}Mon Profil{% endblock %}{% block content %}
+<div class="container py-4" style="max-width:750px">
+
+  <!-- Header card -->
+  <div class="card mb-4">
+    <div style="height:5px;background:var(--gold);border-radius:12px 12px 0 0"></div>
+    <div class="card-body d-flex align-items-center gap-4 p-4">
+      {% if user.get('id') %}
+        <img src="/avatar/{{ user.id }}"
+             style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--brand)">
+      {% else %}
+        <div style="width:88px;height:88px;border-radius:50%;background:{{ user.get('avatar_color','#8B4513') }};
+                    display:flex;align-items:center;justify-content:center;color:#fff;font-size:2rem;font-weight:800;flex-shrink:0">
+          {{ user.get('nom','?')[0].upper() }}
+        </div>
+      {% endif %}
+      <div>
+        <h4 class="fw-bold mb-1">{{ user.get('nom','') }}</h4>
+        <div class="text-secondary">{{ {'admin':'Cadre Administratif','president':'Président de Club','vp':'Vice-Président','membre':'Membre','etudiant':'Étudiant'}.get(user.get('role',''),'') }}</div>
+        <div class="text-secondary small">{{ user.get('email','') }}</div>
+        {% if user.get('username') %}<div class="text-secondary small">🔑 {{ user.username }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo upload -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">📷 Photo de profil</h6>
+      <form method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-3">
+        <input type="hidden" name="action" value="upload_avatar">
+        <input name="avatar" type="file" accept="image/*" class="form-control" style="border-radius:10px;max-width:320px">
+        <button type="submit" class="btn btn-brand px-4" style="border-radius:20px">Mettre à jour</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Preferences -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">⚙️ Préférences</h6>
+        <button class="btn btn-sm btn-outline-secondary" style="border-radius:20px"
+                onclick="document.getElementById('prefsForm').style.display = document.getElementById('prefsForm').style.display==='none'?'block':'none'">
+          ✏️ Modifier
+        </button>
+      </div>
+      <!-- View mode -->
+      <div class="row g-3">
+        {% for icon,label,val in [('📚','Année d\'étude', user.get('annee_etude','Non définie') or 'Non définie'),
+          ('🌍','Langue', user.get('langue','Français') or 'Français'),
+          ('🌙','Thème', user.get('theme','Light') or 'Light')] %}
+        <div class="col-md-4">
+          <div class="p-3 rounded-3" style="background:#F9F5F2">
+            <div class="text-secondary small">{{ icon }} {{ label }}</div>
+            <div class="fw-semibold">{{ val }}</div>
+          </div>
+        </div>{% endfor %}
+      </div>
+      <!-- Edit mode -->
+      <form method="post" id="prefsForm" style="display:none;margin-top:16px">
+        <input type="hidden" name="action" value="update_prefs">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">📚 Année d'étude</label>
+            <select name="annee" class="form-select" style="border-radius:10px">
+              {% for a in ['1ère année','2ème année','3ème année','4ème année','5ème année'] %}
+              <option {{ 'selected' if user.get('annee_etude')==a else '' }}>{{ a }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">🌍 Langue</label>
+            <select name="langue" class="form-select" style="border-radius:10px">
+              {% for l in ['Français','English','العربية','Español'] %}
+              <option {{ 'selected' if user.get('langue')==l else '' }}>{{ l }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">🌙 Thème</label>
+            <select name="theme" class="form-select" style="border-radius:10px">
+              {% for t in ['Light','Dark','System'] %}
+              <option {{ 'selected' if user.get('theme')==t else '' }}>{{ t }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-brand px-4" style="border-radius:20px">💾 Sauvegarder</button>
+          <button type="button" class="btn btn-outline-secondary" style="border-radius:20px"
+                  onclick="document.getElementById('prefsForm').style.display='none'">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- My clubs -->
+  {% if clubs %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">🏛️ Mes Clubs & Rôles</h6>
+      {% for cl in clubs %}
+      <div class="d-flex justify-content-between align-items-center p-2 rounded-3 mb-2" style="background:#F9F5F2">
+        <span class="fw-semibold">🏛️ {{ cl.get('nom','') }}</span>
+        <span class="badge bg-secondary">{{ cl.get('custom_role','') or cl.get('role_club','membre') }}</span>
+      </div>{% endfor %}
+    </div>
+  </div>{% endif %}
+
+  <!-- Change password -->
+  <div class="card">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">🔒 Changer le Mot de Passe</h6>
+      <form method="post">
+        <input type="hidden" name="action" value="change_pwd">
+        <div class="mb-3"><label class="form-label fw-semibold">Mot de passe actuel</label>
+          <input name="old_password" type="password" class="form-control" style="border-radius:10px" required></div>
+        <div class="mb-3"><label class="form-label fw-semibold">Nouveau mot de passe</label>
+          <input name="new_password" type="password" class="form-control" style="border-radius:10px" required minlength="6"></div>
+        <div class="mb-3"><label class="form-label fw-semibold">Confirmer</label>
+          <input name="confirm_password" type="password" class="form-control" style="border-radius:10px" required minlength="6"></div>
+        <button type="submit" class="btn btn-danger px-4" style="border-radius:20px">🔒 Changer le mot de passe</button>
+      </form>
+    </div>
+  </div>
+</div>{% endblock %}

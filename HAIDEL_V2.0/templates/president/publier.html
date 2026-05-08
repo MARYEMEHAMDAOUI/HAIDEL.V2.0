@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Publier une Annonce{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:700px">
+  <div class="card">
+    <div class="card-header-brand">
+      📣 Publier une Annonce — Publication directe
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Titre *</label>
+          <input name="titre" type="text" class="form-control" style="border-radius:10px"
+                 placeholder="Ex: 🎓 Conférence annuelle du club" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Contenu</label>
+          <div class="d-flex gap-2 mb-2">
+            <select id="emojiPicker" class="form-select form-select-sm" style="width:auto;border-radius:20px"
+                    onchange="insertEmoji(this.value);this.value=''">
+              <option value="">😊 Émoji</option>
+              {% for em in ['🎓','🏆','🎉','🚀','💡','📅','🎯','👏','🌟','💼','📊','🤝','🏅','⚡','🔥'] %}
+              <option value="{{ em }}">{{ em }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <textarea name="contenu" id="contenu" class="form-control" rows="5"
+                    style="border-radius:10px" placeholder="Rédigez votre annonce…"></textarea>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Type</label>
+            <select name="type" class="form-select" style="border-radius:10px">
+              <option value="Evenement">📅 Événement</option>
+              <option value="Recrutement">🎯 Recrutement</option>
+              <option value="Activite">⚡ Activité</option>
+              <option value="General">📢 Général</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">📅 Date de l'événement</label>
+            <input name="event_date" type="datetime-local" class="form-control" style="border-radius:10px">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">🖼️ Image de couverture</label>
+          <input name="image" type="file" class="form-control" accept="image/*"
+                 style="border-radius:10px" id="imgInput" onchange="previewImg(this)">
+          <div id="imgPreview" class="mt-3" style="display:none">
+            <img id="prevImg" style="max-width:100%;border-radius:12px;max-height:240px;object-fit:cover">
+            <button type="button" class="btn btn-sm btn-outline-danger mt-2"
+                    onclick="clearImg()" style="border-radius:20px">
+              <i class="bi bi-x"></i> Supprimer l'image
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-brand px-5" style="border-radius:20px">
+            <i class="bi bi-send me-2"></i>Publier maintenant
+          </button>
+          <a href="{{ url_for('feed') }}" class="btn btn-outline-secondary" style="border-radius:20px">
+            Annuler
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+function insertEmoji(em) {
+  if (!em) return;
+  const ta = document.getElementById('contenu');
+  const pos = ta.selectionStart;
+  ta.value = ta.value.slice(0,pos) + em + ta.value.slice(pos);
+  ta.selectionStart = ta.selectionEnd = pos + em.length;
+  ta.focus();
+}
+function previewImg(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('prevImg').src = e.target.result;
+      document.getElementById('imgPreview').style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+function clearImg() {
+  document.getElementById('imgInput').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+}
+</script>
+{% endblock %}
+{% endblock %}

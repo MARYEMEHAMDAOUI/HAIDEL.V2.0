@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Mes Certificats{% endblock %}{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">🏅 Mes Certificats d'Engagement</h4>
+  {% if not certs %}<div class="alert alert-info rounded-3">Aucun certificat pour le moment.</div>
+  {% else %}<div class="row g-3">{% for c in certs %}
+  <div class="col-md-4">
+    <div class="card h-100" style="border-top:4px solid var(--brand)">
+      <div class="card-body text-center py-4">
+        <div style="font-size:2.5rem">🏅</div>
+        <h6 class="fw-bold mt-2">{{ c.titre }}</h6>
+        <p class="text-secondary small">{{ c.get('club_nom','ENCG') }}</p>
+        <span class="badge bg-warning text-dark mb-3">{{ c.type }}</span><br>
+        <small class="text-secondary">Délivré le {{ c.get('date_delivrance','')|datestr(10) }}</small>
+        <div class="mt-3">
+          <a href="{{ url_for('download_cert', cert_id=c.id) }}" class="btn btn-brand btn-sm px-4" style="border-radius:20px">
+            <i class="bi bi-download me-1"></i>Télécharger PNG
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>{% endfor %}</div>{% endif %}
+</div>{% endblock %}

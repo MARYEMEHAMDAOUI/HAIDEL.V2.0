@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Demandes{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">📋 Gestion des Demandes</h4>
+
+  {% if not demandes %}
+    <div class="alert alert-info rounded-3">✅ Aucune demande en attente.</div>
+  {% endif %}
+
+  {% for d in demandes %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h6 class="fw-bold mb-1">{{ d.titre }}</h6>
+          <small class="text-secondary">
+            Club: {{ d.get('club_nom','—') }} ·
+            Président: {{ d.get('president_nom','—') }} ·
+            📅 {{ d.get('date_soumission','')|datestr(10) }}
+          </small>
+          {% if d.get('description') %}
+          <p class="text-secondary mt-2 mb-0" style="font-size:.9rem">{{ d.description }}</p>
+          {% endif %}
+        </div>
+        <span class="badge {{ 'bg-warning text-dark' if d.statut in ('En Attente','Soumise') else 'bg-success' if d.statut=='Validée' else 'bg-danger' }} badge-custom ms-3">
+          {{ d.statut }}
+        </span>
+      </div>
+
+      {% if d.statut in ('En Attente','Soumise') %}
+      <div class="mt-3 d-flex gap-2 flex-wrap">
+        <form method="post" class="d-flex gap-2 flex-wrap">
+          <input type="hidden" name="dem_id" value="{{ d.id }}">
+          <button name="statut" value="Validée" class="btn btn-sm btn-success" style="border-radius:20px">
+            <i class="bi bi-check-circle me-1"></i>Valider
+          </button>
+          <button name="statut" value="En Attente" class="btn btn-sm btn-warning text-dark" style="border-radius:20px">
+            <i class="bi bi-clock me-1"></i>Mettre en attente
+          </button>
+          <button name="statut" value="Refusée" class="btn btn-sm btn-danger" style="border-radius:20px">
+            <i class="bi bi-x-circle me-1"></i>Refuser
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      {% if d.get('commentaire_admin') %}
+      <div class="mt-2 p-2 bg-light rounded-3">
+        <small class="text-secondary">💬 Motif : {{ d.commentaire_admin }}</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

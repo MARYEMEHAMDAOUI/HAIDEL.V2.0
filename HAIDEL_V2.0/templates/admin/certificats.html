@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Certificats{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">🏆 Gestion des Certificats</h4>
+
+  <!-- Pending requests -->
+  {% if reqs %}
+  <div class="card mb-4">
+    <div class="card-header-brand">📥 Demandes en attente ({{ reqs|length }})</div>
+    <div class="card-body p-0">
+      {% for req in reqs %}
+      <div class="border-bottom p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-bold" style="color:var(--brand)">
+              🏅 Pour : {{ req.get('membre_nom','—') }}
+            </div>
+            <small class="text-secondary">
+              Email: {{ req.get('membre_email','—') }} ·
+              Club: {{ req.get('club_nom','—') }} ·
+              Titre: {{ req.get('titre','—') }}
+            </small><br>
+            <small class="text-muted">
+              Demandé par: {{ req.get('president_nom','') }} (Président)
+            </small>
+          </div>
+          <div class="d-flex gap-2 ms-3">
+            <form method="post" class="d-inline">
+              <input type="hidden" name="req_id" value="{{ req.id }}">
+              <button name="action" value="emit" class="btn btn-sm btn-success" style="border-radius:20px">
+                <i class="bi bi-check2-all me-1"></i>Émettre
+              </button>
+            </form>
+            <form method="post" class="d-inline">
+              <input type="hidden" name="req_id" value="{{ req.id }}">
+              <button name="action" value="refuse" class="btn btn-sm btn-danger" style="border-radius:20px">
+                <i class="bi bi-x me-1"></i>Refuser
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info rounded-3 mb-4">
+    ℹ️ Aucune demande de certificat en attente. Les présidents soumettent depuis "Certif." dans leur menu.
+  </div>
+  {% endif %}
+
+  <!-- Emitted certs -->
+  {% if certs %}
+  <div class="card">
+    <div class="card-header-brand">✅ Certificats Émis ({{ certs|length }})</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr><th>Bénéficiaire</th><th>Club</th><th>Type</th><th>Titre</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for c in certs %}
+            <tr>
+              <td class="fw-semibold">{{ c.etudiant_nom }}</td>
+              <td>{{ c.get('club_nom','—') }}</td>
+              <td><span class="badge bg-warning text-dark">{{ c.type }}</span></td>
+              <td>{{ c.titre[:40] }}</td>
+              <td>{{ c.get('date_delivrance','')|datestr(10) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

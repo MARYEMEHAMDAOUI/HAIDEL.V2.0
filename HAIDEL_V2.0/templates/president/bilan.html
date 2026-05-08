@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Bilan Annuel{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-1">📈 Bilan Annuel</h4>
+  <p class="text-secondary mb-4">Club : <strong>{{ club.nom if club else '—' }}</strong></p>
+
+  <!-- Activity history -->
+  {% if activites %}
+  <div class="card mb-4">
+    <div class="card-header-brand">📅 Historique des Activités</div>
+    <div class="card-body p-0">
+      {% for act in activites %}
+      <div class="p-3 border-bottom">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div class="fw-bold">⚡ {{ act.titre }}</div>
+            <small class="text-secondary">
+              📅 {{ act.get('date_activite','—') or '—' }} ·
+              📍 {{ act.get('lieu','—') or '—' }}
+            </small>
+          </div>
+          <span class="badge bg-secondary">{{ act.get('statut','—') }}</span>
+        </div>
+        {% if act.get('description') %}
+        <p class="text-secondary small mt-1 mb-0">{{ act.description }}</p>
+        {% endif %}
+        <!-- External participants for this activity -->
+        {% set act_parts = participants|selectattr('activite_id', 'equalto', act.id)|list %}
+        {% if act_parts %}
+        <div class="mt-2 p-2 rounded-3" style="background:#FEF9EC;border-left:3px solid #C9A64A">
+          <small class="fw-semibold text-warning-emphasis">🌐 Intervenants externes :</small>
+          {% for p in act_parts %}
+          <div class="d-flex gap-3 mt-1">
+            <small>👤 {{ p.nom }}</small>
+            {% if p.get('organisation') %}<small class="text-secondary">· {{ p.organisation }}</small>{% endif %}
+            {% if p.get('email') %}<small class="text-info">· {{ p.email }}</small>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Previous bilans -->
+  {% if bilans %}
+  <div class="card mb-4">
+    <div class="card-header fw-semibold py-2 px-3" style="background:#F9F5F2">Bilans précédents</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light"><tr><th>Année</th><th>Activités</th><th>Membres</th><th>Événements</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            {% for b in bilans %}
+            <tr>
+              <td>{{ b.annee }}</td>
+              <td>{{ b.activites_realises }}</td>
+              <td>{{ b.membres_actifs }}</td>
+              <td>{{ b.get('evenements',0) }}</td>
+              <td><span class="badge bg-info text-dark">{{ b.statut }}</span></td>
+              <td>
+                <a href="#" onclick="exportBilan({{ b.id }}, '{{ b.annee }}', '{{ b.club_nom }}', {{ b.activites_realises }}, {{ b.membres_actifs }})"
+                   class="btn btn-sm btn-outline-secondary" style="border-radius:20px">
+                  <i class="bi bi-download"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- New bilan form -->
+  <div class="card">
+    <div class="card-header-brand">✍️ Soumettre un Nouveau Bilan</div>
+    <div class="card-body">
+      <form method="post" id="bilanForm">
+        <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Année académique</label>
+            <input name="annee" type="text" class="form-control" style="border-radius:10px"
+                   placeholder="2024-2025" value="2024-2025">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Activités réalisées</label>
+            <input name="activites" type="number" class="form-control" style="border-radius:10px"
+                   placeholder="0" min="0" value="0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Membres actifs</label>
+            <input name="membres" type="number" class="form-control" style="border-radius:10px"
+                   placeholder="0" min="0" value="0">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Événements</label>
+            <input name="evenements" type="number" class="form-control" style="border-radius:10px"
+                   placeholder="0" min="0" value="0">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Résumé qualitatif</label>
+          <textarea name="resume" class="form-control" rows="4" style="border-radius:10px"
+                    placeholder="Décrivez les accomplissements, défis et perspectives du club…"></textarea>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-brand px-4" style="border-radius:20px">
+            <i class="bi bi-send me-2"></i>Soumettre au Cadre Administratif
+          </button>
+          <button type="button" class="btn btn-outline-secondary" style="border-radius:20px"
+                  onclick="exportCurrentBilan()">
+            <i class="bi bi-printer me-2"></i>Exporter (PDF/Texte)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+function exportBilan(id, annee, club, acts, mbrs) {
+  const content = `BILAN ANNUEL — HAIDEL ENCG Marrakech
+${'='.repeat(50)}
+Club            : ${club}
+Année           : ${annee}
+Activités       : ${acts}
+Membres actifs  : ${mbrs}
+${'='.repeat(50)}
+Généré par HAIDEL v3.0 — ${new Date().toLocaleString('fr-FR')}`;
+  downloadText(content, `Bilan_${club}_${annee}.txt`);
+}
+
+function exportCurrentBilan() {
+  const form = document.getElementById('bilanForm');
+  const club = "{{ club.nom if club else 'ENCG' }}";
+  const annee = form.annee.value;
+  const acts = form.activites.value;
+  const mbrs = form.membres.value;
+  const evts = form.evenements.value;
+  const res  = form.resume.value;
+  const content = `BILAN ANNUEL — HAIDEL ENCG Marrakech
+${'='.repeat(50)}
+Club            : ${club}
+Année           : ${annee}
+Activités       : ${acts}
+Membres actifs  : ${mbrs}
+Événements      : ${evts}
+
+Résumé :
+${res}
+${'='.repeat(50)}
+Généré par HAIDEL v3.0 — ${new Date().toLocaleString('fr-FR')}`;
+  downloadText(content, `Bilan_${club.replace(/ /g,'_')}_${annee}.txt`);
+}
+
+function downloadText(content, filename) {
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}
+{% endblock %}

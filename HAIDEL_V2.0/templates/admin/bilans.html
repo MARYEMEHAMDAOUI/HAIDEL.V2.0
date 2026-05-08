@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Bilans Clubs{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">📈 Bilans Annuels des Clubs</h4>
+
+  {% if not bilans %}
+  <div class="alert alert-info rounded-3">
+    📭 Aucun bilan soumis pour le moment. Les présidents soumettent depuis "Bilan" dans leur menu.
+  </div>
+  {% else %}
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    {% set total_acts = bilans|sum(attribute='activites_realises') %}
+    {% set total_mbrs = bilans|sum(attribute='membres_actifs') %}
+    {% for label, val, icon, col in [
+      ('Bilans reçus',    bilans|length, '📋', '#8B4513'),
+      ('Activités total', total_acts,   '⚡', '#1877F2'),
+      ('Membres actifs',  total_mbrs,   '👥', '#31A24C'),
+    ] %}
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div style="font-size:1.5rem">{{ icon }}</div>
+        <div class="stat-num" style="color:{{ col }}">{{ val }}</div>
+        <div class="stat-label">{{ label }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Bilan cards -->
+  {% for b in bilans %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h6 class="fw-bold mb-1">📈 {{ b.club_nom }} — {{ b.annee }}</h6>
+          <div class="d-flex gap-3 text-secondary" style="font-size:.88rem">
+            <span>⚡ {{ b.activites_realises }} activités</span>
+            <span>👥 {{ b.membres_actifs }} membres</span>
+            <span>📅 {{ b.get('evenements',0) }} événements</span>
+            <span>Soumis : {{ b.get('date_soumission','')|datestr(10) }}</span>
+          </div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge bg-info text-dark">{{ b.statut }}</span>
+          <a href="/admin/bilans/{{ b.id }}/export" class="btn btn-sm btn-outline-secondary" style="border-radius:20px">
+            <i class="bi bi-download me-1"></i>Exporter
+          </a>
+        </div>
+      </div>
+      {% if b.get('resume') %}
+      <p class="text-secondary mt-2 mb-0" style="font-size:.88rem">{{ b.resume }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

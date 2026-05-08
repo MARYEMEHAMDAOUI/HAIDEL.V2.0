@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Réclamations{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1">🚩 Réclamations Reçues</h4>
+      <p class="text-secondary mb-0 small">
+        <span class="badge bg-warning text-dark">{{ en_attente|length }} en attente</span>
+        <span class="badge bg-success ms-1">{{ repondues|length }} répondues</span>
+        <span class="badge bg-secondary ms-1">{{ total }} total</span>
+      </p>
+    </div>
+    <!-- Auto-refresh indicator -->
+    <div class="d-flex align-items-center gap-2 text-secondary" style="font-size:.82rem">
+      <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+      Actualisation automatique (10s)
+    </div>
+  </div>
+
+  <!-- ── En attente ─────────────────────────────────────────────────────────── -->
+  {% if en_attente %}
+  <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+    <span class="badge bg-warning text-dark">{{ en_attente|length }}</span>
+    En attente de réponse
+  </h5>
+
+  {% for r in en_attente %}
+  <div class="card mb-3" style="border-left:4px solid #E67E22">
+    <div class="card-body">
+
+      <!-- Reclamation info -->
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h6 class="fw-bold mb-1">{{ r.titre }}</h6>
+          <p class="text-secondary mb-1" style="font-size:.9rem">{{ r.description }}</p>
+          <div class="d-flex gap-3" style="font-size:.82rem;color:#65676B">
+            <span><i class="bi bi-person me-1"></i>{{ r.president_nom }}</span>
+            <span><i class="bi bi-clock me-1"></i>{{ (r.get('created_at') or '')[:16]|replace('T',' ') }}</span>
+          </div>
+        </div>
+        <span class="badge bg-warning text-dark flex-shrink-0">⏳ En attente</span>
+      </div>
+
+      <!-- Reply form -->
+      <form method="post" action="{{ url_for('reclamations.admin_repondre', rec_id=r.id) }}">
+        <div class="d-flex gap-2">
+          <textarea name="reponse" class="form-control" rows="2" style="border-radius:10px"
+                    placeholder="Rédigez votre réponse au président…" required></textarea>
+          <button type="submit" class="btn btn-brand flex-shrink-0 px-4" style="border-radius:10px;align-self:flex-end">
+            <i class="bi bi-reply-fill me-1"></i>Répondre
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="alert alert-success rounded-3 mb-4">
+    <i class="bi bi-check-circle me-2"></i>
+    Toutes les réclamations ont été traitées. ✅
+  </div>
+  {% endif %}
+
+  <!-- ── Répondues ──────────────────────────────────────────────────────────── -->
+  {% if repondues %}
+  <h5 class="fw-bold mb-3 mt-4 d-flex align-items-center gap-2">
+    <span class="badge bg-success">{{ repondues|length }}</span>
+    Réclamations répondues
+  </h5>
+
+  {% for r in repondues %}
+  <div class="card mb-3" style="border-left:4px solid #31A24C;opacity:.85">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="flex-grow-1">
+          <h6 class="fw-bold mb-1">{{ r.titre }}</h6>
+          <p class="text-secondary mb-2" style="font-size:.88rem">{{ r.description }}</p>
+          <div class="p-2 rounded-3" style="background:#EBF5FB;border-left:3px solid #1B74E4;font-size:.88rem">
+            <strong style="color:#1B74E4"><i class="bi bi-shield-check me-1"></i>Votre réponse :</strong>
+            {{ r.reponse_admin }}
+          </div>
+          <small class="text-muted mt-1 d-block">
+            <i class="bi bi-person me-1"></i>{{ r.president_nom }} ·
+            {{ (r.get('created_at') or '')[:16]|replace('T',' ') }}
+          </small>
+        </div>
+        <span class="badge bg-success flex-shrink-0 ms-3">✅ Répondu</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+
+{% block extra_js %}
+<script>
+  // Auto-refresh every 15 seconds to catch new reclamations
+  setTimeout(() => location.reload(), 15000);
+</script>
+{% endblock %}
+{% endblock %}

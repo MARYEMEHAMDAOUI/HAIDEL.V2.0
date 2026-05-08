@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block title %}Demander Certificats{% endblock %}{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">🎖️ Demander des Certificats</h4>
+  <div class="alert alert-info rounded-3 mb-4">ℹ️ Sélectionnez les membres à certifier. Le cadre administratif émettra les certificats officiels.</div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card"><div class="card-header-brand">📤 Nouvelle Demande</div><div class="card-body">
+        <form method="post">
+          <div class="mb-3"><label class="form-label fw-semibold">Membre *</label>
+            <select name="membre_id" class="form-select" style="border-radius:10px" required>
+              {% for m in actifs %}<option value="{{ m.id }}">{{ m.nom }}</option>{% endfor %}
+            </select></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Titre du certificat</label>
+            <input name="titre" type="text" class="form-control" style="border-radius:10px" value="Certificat d'Engagement"></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Type</label>
+            <select name="type" class="form-select" style="border-radius:10px">
+              <option value="Engagement">Engagement</option><option value="Participation">Participation</option><option value="Excellence">Excellence</option>
+            </select></div>
+          <button type="submit" class="btn btn-brand w-100" style="border-radius:20px">📤 Soumettre</button>
+        </form>
+      </div></div>
+    </div>
+    <div class="col-md-6">
+      <div class="card"><div class="card-header-brand">📋 Demandes soumises</div>
+        {% if reqs %}<div class="card-body p-0"><div class="table-responsive">
+          <table class="table table-sm mb-0"><thead class="table-light"><tr><th>Membre</th><th>Statut</th></tr></thead><tbody>
+          {% for r in reqs %}<tr><td>{{ r.get('membre_nom','—') }}</td>
+            <td><span class="badge {{ 'bg-success' if r.statut=='Émis' else 'bg-warning text-dark' }}">{{ r.statut }}</span></td>
+          </tr>{% endfor %}
+          </tbody></table></div></div>
+        {% else %}<div class="card-body text-secondary">Aucune demande.</div>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>{% endblock %}

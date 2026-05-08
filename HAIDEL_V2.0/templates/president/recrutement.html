@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Recrutements{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+  <h4 class="fw-bold mb-4">🎯 Recrutements & Demandes d'Adhésion</h4>
+
+  <!-- Toggle candidatures -->
+  {% if club %}
+  <div class="card mb-4">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <div>
+        <h6 class="fw-bold mb-1">Candidatures d'Adhésion — {{ club.nom }}</h6>
+        <p class="text-secondary mb-0 small">
+          {% if ouvert %}✅ Les candidatures sont ouvertes{% else %}🔒 Les candidatures sont fermées{% endif %}
+        </p>
+      </div>
+      <form method="post">
+        <input type="hidden" name="action" value="toggle_apps">
+        <input type="hidden" name="club_id" value="{{ club.id }}">
+        <button type="submit" class="btn {{ 'btn-success' if ouvert else 'btn-danger' }}" style="border-radius:20px">
+          {{ '🔒 Fermer' if ouvert else '🔓 Ouvrir' }} les candidatures
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Pending applications -->
+  {% if apps %}
+  <div class="card mb-4">
+    <div class="card-header-brand">📩 Demandes en attente ({{ apps|length }})</div>
+    <div class="card-body p-0">
+      {% for ap in apps %}
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div>
+          <div class="fw-semibold">{{ ap.etudiant_nom }}</div>
+          <small class="text-secondary">{{ ap.etudiant_email }}</small>
+        </div>
+        <div class="d-flex gap-2">
+          <form method="post" action="{{ url_for('pres_accept_app', app_id=ap.id) }}">
+            <button class="btn btn-sm btn-success" style="border-radius:20px">✅ Accepter</button>
+          </form>
+          <form method="post" action="{{ url_for('pres_reject_app', app_id=ap.id) }}">
+            <button class="btn btn-sm btn-danger" style="border-radius:20px">❌ Refuser</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Application history -->
+  {% if all_apps %}
+  <div class="card mb-4">
+    <div class="card-header fw-semibold py-2 px-3" style="background:#F9F5F2">Historique des candidatures</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light"><tr><th>Candidat</th><th>Email</th><th>Statut</th></tr></thead>
+          <tbody>
+            {% for ap in all_apps[:15] %}
+            <tr>
+              <td>{{ ap.etudiant_nom }}</td>
+              <td>{{ ap.etudiant_email }}</td>
+              <td><span class="badge {{ 'bg-success' if ap.statut=='Accepté' else 'bg-danger' if ap.statut=='Refusé' else 'bg-warning text-dark' }}">{{ ap.statut }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recruitment posts -->
+  {% if recs %}
+  <h5 class="fw-bold mb-3">Postes de Recrutement</h5>
+  {% for rec in recs %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <h6 class="fw-bold">🎯 {{ rec.titre }}</h6>
+        <small class="text-secondary">Limite : {{ rec.get('date_limite','—') or '—' }}</small>
+      </div>
+      <p class="text-secondary small mb-2">{{ rec.get('description','') }}</p>
+      <span class="badge bg-info text-dark">{{ rec.get('nb_candidatures',0) }} candidature(s)</span>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

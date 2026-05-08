@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Admin{% endblock %}
+{% block content %}
+<div class="container-xl py-4">
+
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <h4 class="mb-0 fw-bold">📊 Dashboard Administrateur</h4>
+    <span class="badge bg-secondary">ENCG Marrakech 2024-2025</span>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    {% for label, val, icon, color in [
+      ('Clubs Actifs',        stats.total_clubs,     '🏛️', '#8B4513'),
+      ('Membres Totaux',      stats.total_membres,   '👥', '#1877F2'),
+      ('Demandes en cours',   stats.active_demandes, '📋', '#E67E22'),
+      ('Événements',          stats.events_realises, '📅', '#31A24C'),
+      ('Certifs en attente',  stats.cert_pending,    '🏆', '#C9A64A'),
+    ] %}
+    <div class="col-6 col-md-4 col-xl">
+      <div class="stat-card">
+        <div style="font-size:1.8rem">{{ icon }}</div>
+        <div class="stat-num" style="color:{{ color }}">{{ val }}</div>
+        <div class="stat-label">{{ label }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Clubs table -->
+  <div class="card mb-4">
+    <div class="card-header-brand d-flex justify-content-between align-items-center">
+      <span>🏛️ Clubs Enregistrés ({{ clubs|length }})</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Club</th><th>Thématique</th><th>Président</th>
+              <th>Membres</th><th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in clubs %}
+            <tr>
+              <td class="fw-semibold">{{ c.nom }}</td>
+              <td><span class="badge bg-secondary">{{ c.type }}</span></td>
+              <td>{{ c.get('president_nom','—') }}</td>
+              <td>{{ c.nb_membres }}</td>
+              <td><span class="badge {{ 'bg-success' if c.statut=='Actif' else 'bg-secondary' }}">{{ c.statut }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bilans -->
+  {% if bilans %}
+  <div class="card">
+    <div class="card-header-brand">📈 Bilans Reçus ({{ bilans|length }})</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr><th>Club</th><th>Année</th><th>Activités</th><th>Membres</th><th>Statut</th></tr>
+          </thead>
+          <tbody>
+            {% for b in bilans %}
+            <tr>
+              <td class="fw-semibold">{{ b.club_nom }}</td>
+              <td>{{ b.annee }}</td>
+              <td>{{ b.activites_realises }}</td>
+              <td>{{ b.membres_actifs }}</td>
+              <td><span class="badge bg-info text-dark">{{ b.statut }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

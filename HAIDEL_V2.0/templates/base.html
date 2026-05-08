@@ -1,0 +1,433 @@
+{% set _user = current_user() %}
+{% set _lang = _user.get('langue','Français') if _user else 'Français' %}
+{% set _dir  = 'rtl' if _lang == 'العربية' else 'ltr' %}
+<!DOCTYPE html>
+<html lang="{{ {'Français':'fr','English':'en','العربية':'ar','Español':'es'}.get(_lang,'fr') }}"
+      dir="{{ _dir }}"
+      data-bs-theme="{{ (_user.get('theme','Light') or 'Light')|lower if _user else 'light' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}HAIDEL{% endblock %} — ENCG Marrakech</title>
+
+  <!-- Bootstrap 5 (RTL for Arabic) -->
+  {% if _lang == 'العربية' %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  {% else %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  {% endif %}
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --brand:       #8B4513;
+      --brand-dark:  #6B3410;
+      --brand-light: #FDF3EE;
+      --gold:        #C9A64A;
+      --gold-light:  #FEF9EC;
+      --bg:          #F0F2F5;
+      --sidebar-bg:  #18191A;
+      --card-shadow: 0 2px 12px rgba(0,0,0,.08);
+      --radius:      12px;
+    }
+
+    * { font-family: 'Inter', system-ui, sans-serif; }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ──────────────────────────────────────────── */
+    .haidel-nav {
+      background: var(--sidebar-bg);
+      height: 56px;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    }
+    .haidel-nav .brand {
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -.5px;
+    }
+    .haidel-nav .brand span {
+      background: var(--brand);
+      border-radius: 8px;
+      padding: 2px 10px;
+      margin-right: 8px;
+    }
+    .nav-link-top {
+      color: #aaa !important;
+      font-size: .87rem;
+      font-weight: 500;
+      padding: 6px 10px !important;
+      border-radius: 8px;
+      transition: .2s;
+    }
+    .nav-link-top:hover, .nav-link-top.active {
+      background: var(--brand);
+      color: #fff !important;
+    }
+    .nav-link-top.active { background: var(--brand) !important; }
+
+    /* ── Cards ───────────────────────────────────────────── */
+    .card {
+      border: 1px solid #DDD0C8;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+    }
+    .card-header-brand {
+      background: var(--brand);
+      color: #fff;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 12px 18px;
+      font-weight: 600;
+    }
+
+    /* ── Feed post card ──────────────────────────────────── */
+    .post-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid #DDD0C8;
+      overflow: hidden;
+      transition: box-shadow .2s;
+    }
+    .post-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
+    .post-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1.1rem; color: #fff;
+      flex-shrink: 0;
+    }
+    .post-actions button {
+      background: none;
+      border: none;
+      color: #65676B;
+      font-size: .87rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: .15s;
+      cursor: pointer;
+    }
+    .post-actions button:hover { background: #F0F2F5; color: var(--brand); }
+    .reaction-popup {
+      position: absolute;
+      background: #fff;
+      border-radius: 30px;
+      padding: 6px 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.18);
+      display: flex; gap: 4px;
+      bottom: 44px; left: 0;
+      z-index: 100;
+      display: none;
+    }
+    .reaction-popup button {
+      width: 44px; height: 44px;
+      border-radius: 50%; border: none;
+      font-size: 1.25rem;
+      transition: transform .15s;
+      background: #F0F2F5;
+    }
+    .reaction-popup button:hover { transform: scale(1.3); background: #e4e6ea; }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      border: 1px solid #DDD0C8;
+      position: sticky; top: 70px;
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px;
+      color: #050505;
+      font-size: .9rem;
+      font-weight: 500;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: .15s;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+      background: var(--brand-light);
+      color: var(--brand);
+    }
+    .sidebar-link .icon { font-size: 1.1rem; width: 24px; }
+
+    /* ── Stat card ───────────────────────────────────────── */
+    .stat-card {
+      background: #fff;
+      border-radius: var(--radius);
+      border: 1px solid #DDD0C8;
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+    }
+    .stat-card .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+    }
+    .stat-card .stat-label {
+      font-size: .82rem;
+      color: #65676B;
+      margin-top: 2px;
+    }
+
+    /* ── Badges ──────────────────────────────────────────── */
+    .badge-custom {
+      font-size: .75rem;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .btn-brand {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .btn-brand:hover { background: var(--brand-dark); color: #fff; }
+    .btn-outline-brand {
+      border: 2px solid var(--brand);
+      color: var(--brand);
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .btn-outline-brand:hover { background: var(--brand); color: #fff; }
+
+    /* ── Forms ───────────────────────────────────────────── */
+    .form-control:focus, .form-select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(139,69,19,.12);
+    }
+
+    /* ── Messaging ───────────────────────────────────────── */
+    .msg-bubble {
+      max-width: 68%;
+      padding: 8px 14px;
+      border-radius: 18px;
+      font-size: .9rem;
+      line-height: 1.4;
+    }
+    .msg-me { background: var(--brand); color: #fff; border-radius: 18px 18px 4px 18px; }
+    .msg-other { background: #F0F2F5; border-radius: 18px 18px 18px 4px; }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .haidel-nav .nav-link-top { font-size: .78rem; padding: 5px 6px !important; }
+    }
+
+    /* ── Gold accent line ────────────────────────────────── */
+    .gold-line { height: 4px; background: var(--gold); border-radius: 2px; }
+
+    /* ── Event sidebar card ──────────────────────────────── */
+    .event-item {
+      border-left: 3px solid var(--brand);
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      background: var(--brand-light);
+      border-radius: 0 8px 8px 0;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if current_user() %}
+<!-- ── Navbar ─────────────────────────────────────────────────── -->
+<nav class="haidel-nav d-flex align-items-center">
+  <!-- Brand -->
+  <a href="{{ url_for('feed') }}" class="brand me-3">
+    <span>H</span>HAIDEL
+  </a>
+  <small class="text-secondary me-4 d-none d-md-block" style="font-size:.75rem">ENCG Marrakech</small>
+
+  <!-- Nav links -->
+  <div class="d-flex gap-1 flex-grow-1 overflow-auto">
+    <a href="{{ url_for('feed') }}" class="nav-link-top {% if request.endpoint=='feed' %}active{% endif %}">
+      <i class="bi bi-house-fill"></i> Accueil
+    </a>
+    {% set role = current_user().get('role') %}
+
+    {% if role == 'admin' %}
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-link-top {% if 'admin_dashboard' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a href="{{ url_for('admin_demandes') }}" class="nav-link-top">
+        <i class="bi bi-inbox"></i> Demandes
+      </a>
+      <a href="{{ url_for('admin_certificats') }}" class="nav-link-top">
+        <i class="bi bi-award"></i> Certificats
+      </a>
+      <a href="{{ url_for('admin_bilans') }}" class="nav-link-top">
+        <i class="bi bi-bar-chart"></i> Bilans
+      </a>
+      <a href="{{ url_for('admin_requests') }}" class="nav-link-top">
+        <i class="bi bi-file-earmark-arrow-up"></i> Docs
+      </a>
+      <a href="/admin/reclamations"
+         class="nav-link-top {% if 'reclamations' in request.endpoint %}active{% endif %}"
+         id="navReclamations">
+        <i class="bi bi-flag-fill"></i> Réclamations
+        <span id="recBadge" class="badge bg-danger ms-1" style="display:none;font-size:.7rem"></span>
+      </a>
+
+    {% elif role in ('president','vp') %}
+      <a href="{{ url_for('pres_demandes') }}" class="nav-link-top">
+        <i class="bi bi-file-text"></i> Demandes
+      </a>
+      <a href="{{ url_for('pres_membres') }}" class="nav-link-top">
+        <i class="bi bi-people"></i> Membres
+      </a>
+      <a href="{{ url_for('pres_recrutement') }}" class="nav-link-top">
+        <i class="bi bi-person-plus"></i> Recrutement
+      </a>
+      <a href="{{ url_for('pres_bilan') }}" class="nav-link-top">
+        <i class="bi bi-graph-up"></i> Bilan
+      </a>
+      <a href="{{ url_for('pres_certif') }}" class="nav-link-top">
+        <i class="bi bi-award"></i> Certif.
+      </a>
+      <a href="{{ url_for('pres_ext') }}" class="nav-link-top">
+        <i class="bi bi-globe2"></i> Ext.
+      </a>
+      <a href="{{ url_for('pres_docs') }}" class="nav-link-top">
+        <i class="bi bi-folder2-open"></i> Docs
+      </a>
+      <a href="{{ url_for('messaging') }}" class="nav-link-top">
+        <i class="bi bi-chat-dots"></i> Messagerie
+      </a>
+      <a href="/president/reclamations"
+         class="nav-link-top {% if 'reclamations' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-flag"></i> Réclamations
+      </a>
+
+    {% elif role == 'membre' %}
+      <a href="{{ url_for('mes_certificats') }}" class="nav-link-top">
+        <i class="bi bi-award"></i> Certificats
+      </a>
+      <a href="{{ url_for('clubs_explorer') }}" class="nav-link-top">
+        <i class="bi bi-building"></i> Clubs
+      </a>
+      <a href="{{ url_for('messaging') }}" class="nav-link-top">
+        <i class="bi bi-chat-dots"></i> Messagerie
+      </a>
+
+    {% else %}
+      {# étudiant — messagerie seulement s'il appartient à un club #}
+      <a href="{{ url_for('clubs_explorer') }}" class="nav-link-top">
+        <i class="bi bi-building"></i> Clubs ENCG
+      </a>
+      {% if user_clubs %}
+      <a href="{{ url_for('messaging') }}" class="nav-link-top">
+        <i class="bi bi-chat-dots"></i> Messagerie
+      </a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- User avatar + profile -->
+  <div class="d-flex align-items-center gap-2 ms-3">
+    {% set av_color = current_user().get('avatar_color','#8B4513') %}
+    {% if current_user().get('id') %}
+      <img src="/avatar/{{ current_user().get('id') }}"
+           style="width:32px;height:32px;border-radius:50%;object-fit:cover;"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    {% endif %}
+    {% if not current_user().get('id') %}
+      <div style="width:32px;height:32px;border-radius:50%;background:{{ av_color }};
+                  display:flex;align-items:center;justify-content:center;
+                  color:#fff;font-weight:700;font-size:.85rem">
+        {{ current_user().get('nom','?')[0].upper() }}
+      </div>
+    {% endif %}
+    <a href="{{ url_for('profile') }}" class="nav-link-top d-none d-sm-block">
+      {{ current_user().get('nom','').split()[0] }}
+    </a>
+    <a href="{{ url_for('logout') }}" class="nav-link-top text-danger" title="Déconnexion">
+      <i class="bi bi-box-arrow-right"></i>
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+<!-- ── Flash messages ────────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div style="position:fixed;top:66px;right:20px;z-index:9999;min-width:300px">
+  {% for cat,msg in messages %}
+  <div class="alert alert-{{ 'danger' if cat=='danger' else 'success' if cat=='success' else 'warning' if cat=='warning' else 'info' }}
+              alert-dismissible fade show shadow" role="alert" style="border-radius:12px">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- ── Main content ──────────────────────────────────────────── -->
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss alerts
+  setTimeout(()=>{
+    document.querySelectorAll('.alert').forEach(a=>{
+      try{ bootstrap.Alert.getOrCreateInstance(a).close() }catch(e){}
+    });
+  }, 4000);
+
+  // ── Réclamations temps réel (admin only) ────────────────────────────────────
+  {% if current_user() and current_user().get('role') == 'admin' %}
+  let _lastCount = 0;
+  function pollReclamations() {
+    fetch('/api/reclamations/count')
+      .then(r => r.json())
+      .then(data => {
+        const badge = document.getElementById('recBadge');
+        if (!badge) return;
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = 'inline';
+        } else {
+          badge.style.display = 'none';
+        }
+        // New reclamation toast notification
+        if (data.count > _lastCount && _lastCount !== 0) {
+          const toast = document.createElement('div');
+          toast.className = 'alert alert-warning alert-dismissible fade show shadow';
+          toast.style.cssText = 'position:fixed;top:66px;right:20px;z-index:9999;min-width:280px;border-radius:12px';
+          toast.innerHTML = `<i class="bi bi-flag-fill me-2"></i><strong>Nouvelle réclamation !</strong>
+            Un président vient de soumettre une réclamation.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+          document.body.appendChild(toast);
+          setTimeout(() => { try { bootstrap.Alert.getOrCreateInstance(toast).close(); } catch(e){} }, 6000);
+        }
+        _lastCount = data.count;
+      }).catch(() => {});
+  }
+  pollReclamations();
+  setInterval(pollReclamations, 10000); // every 10 seconds
+  {% endif %}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
